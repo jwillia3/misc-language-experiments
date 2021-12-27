@@ -1,0 +1,20 @@
+infixr 1 $.
+def id x = x.
+def const x y = x.
+def succ x = 1 + x.
+def pred x = x - 1 .
+def $ f x = f x.
+def π = 3.1459.
+def foldl f x xs =
+    if null xs
+    then x
+    else foldl f (f x (hd xs)) (tl xs).
+def foldr f x xs =
+    if null xs
+    then x
+    else f (hd xs) $ foldr f x (tl xs).
+def length xs = foldr (const succ) 0 xs.
+
+def ones = 1:ones.
+def main = length [1,20,300].
+def main = foldr (+) 100 [1,20,200].

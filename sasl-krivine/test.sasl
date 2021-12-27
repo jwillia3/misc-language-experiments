@@ -1,0 +1,33 @@
+infixr 0 $.
+infixr 1 :.
+infixr 2 and or.
+infixl 3 == <> <= => < >.
+infixl 4 + -.
+infixl 5 * / rem.
+infixl 6 ^.
+
+def and x y = if x then (if y then true else false) else false.
+def or x y = if x then true else if y then true else false.
+def $ f x = f x.
+def double x = x + x.
+def null xs = xs == [].
+def foldl combine y xs =
+    if null xs
+    then y
+    else foldl combine (combine y (hd xs)) (tl xs).
+def pred n = n - 1 .
+def succ n = 1 + n.
+def enumerate n upto =
+    if n == upto
+    then upto
+    else enumerate (succ n) upto.
+
+# def main = foldl (+) 1000 [200, 30, 4].
+# def main = enumerate 0 10000 .
+
+def π = 3.14159.
+
+# def main = 1 + (2 * 3) .
+# def main = 1 + (2 * 3) .
+# def main = enumerate 0 5 .
+def main = 1 + 2 .

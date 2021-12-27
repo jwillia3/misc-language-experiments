@@ -1,0 +1,151 @@
+# basic values
+    print 0, 1, 12.3;           ## 0 1 12.3
+    print nil, true, false;     ## nil true false
+    print '', 'a', 'bc\'\nd';   ##  a bc'
+                                ## d
+    print "'", '"';             ## ' "
+    print [], [1,2,3];          ## [] [1,2,3]
+    print {}, {a:1, b:2,};      ## {} {a:1,b:2}
+    fn f() {}
+    print f;                    ## f
+    (fn (x) print x;)(123);     ## 123
+# unary operators
+    print -1, - -1;             ## -1 1
+    print !true,!0,!'',![];     ## false false false false
+    print !false,!nil;          ## true true
+# operators
+    # order of operations
+    print 1+2*3-4/5%6;          ## 6.2
+    print (1+(2*3))-((4/5)%6);  ## 6.2
+    print 1+2<5 == 4<5;         ## true
+    print -nil();               ## -0
+    
+    # numeric
+    print 1<2, 2<1, 1<1;        ## true false false
+    print 1<=2, 2<=1, 1<=1;     ## true false true
+    print 1>2, 2>1, 1>1;        ## false true false
+    print 1>=2, 2>=1, 1>=1;     ## false true true
+    print 1==1, 1==2;           ## true false
+    print 1!=1, 1!=2;           ## false true
+    
+    # string
+    print 'a' < 'b', 'b' < 'a', 'a' < 'a';          ## true false false
+    print 'aa' < 'b', 'b' < 'aa', 'aa' < 'aa';      ## true false false
+    print 'a' <= 'b', 'b' <= 'a', 'a' <= 'a';       ## true false true
+    print 'aa' <= 'b', 'b' <= 'aa', 'aa' <= 'aa';   ## true false true
+    print 'a' > 'b', 'b' > 'a', 'a' > 'a';          ## false true false
+    print 'aa' > 'b', 'b' > 'aa', 'aa' > 'aa';      ## false true false
+    print 'a' >= 'b', 'b' >= 'a', 'a' >= 'a';       ## false true true
+    print 'aa' >= 'b', 'b' >= 'aa', 'aa' >= 'aa';   ## false true true
+# variables & assignment
+    print a;                    ## nil
+    print a=1024, a;            ## 1024 1024
+    b=2;
+    print a,b;                  ## 1024 2
+    
+    # index assignment and negative indexes
+    print x=[1,2,3];            ## [1,2,3]
+    print x[2]=300, x[-1];      ## 300 300
+    print x[1]=200, x[-2];      ## 200 200
+    print x[0]=100, x[-3];      ## 100 100
+    
+    # assigning to bad index is ignored
+    print x[3]=500, x[-4];      ## 500 nil
+    
+    # hash assignment
+    print x={a:1, b:2};         ## {a:1,b:2}
+    print x['a']=100, x;        ## 100 {a:100,b:2}
+    print x['b']=200, x;        ## 200 {a:100,b:200}
+    print x['c'];               ## nil
+    print x['c']=300, x;        ## 300 {c:300,a:100,b:200}
+    
+    # stress test hash
+    a={}; i=0; while i < 129 { i=i+1; a[i] = i; } print a;
+    ## {1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,11:11,12:12,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:21,22:22,23:23,24:24,25:25,26:26,27:27,28:28,29:29,30:30,31:31,32:32,33:33,34:34,35:35,36:36,37:37,38:38,39:39,40:40,41:41,42:42,43:43,44:44,45:45,46:46,47:47,48:48,49:49,50:50,51:51,52:52,53:53,54:54,55:55,56:56,57:57,58:58,59:59,60:60,61:61,62:62,63:63,64:64,65:65,66:66,67:67,68:68,69:69,70:70,71:71,72:72,73:73,74:74,75:75,76:76,77:77,78:78,79:79,80:80,81:81,82:82,83:83,84:84,85:85,86:86,87:87,88:88,89:89,90:90,91:91,92:92,93:93,94:94,95:95,96:96,97:97,98:98,99:99,100:100,101:101,102:102,103:103,104:104,105:105,106:106,107:107,108:108,109:109,110:110,111:111,112:112,113:113,114:114,115:115,116:116,117:117,118:118,119:119,120:120,121:121,122:122,123:123,124:124,125:125,126:126,127:127,128:128,129:129}
+    
+    # Complex assignment
+    a=1;
+    print a+=2, a;    ## 3 3
+    print a*=3, a;    ## 9 9
+    print a/=5, a;    ## 1.8 1.8
+    print a%=1, a;    ## 0.8 0.8
+    a=[100,1,200];
+    print a[1]+=2, a; ## 3 [100,3,200]
+    print a[1]*=3, a; ## 9 [100,9,200]
+    print a[1]/=5, a; ## 1.8 [100,1.8,200]
+    print a[1]%=1, a; ## 0.8 [100,0.8,200]
+    a={d:3, a:1, b:200};
+    print a['a']+=2, a; ## 3 {d:3,a:3,b:200}
+    print a['a']*=3, a; ## 9 {d:3,a:9,b:200}
+    print a['a']/=5, a; ## 1.8 {d:3,a:1.8,b:200}
+    print a['a']%=1, a; ## 0.8 {d:3,a:0.8,b:200}
+    a={d:3, a:1, b:200};
+    print a.a+=2, a;    ## 3 {d:3,a:3,b:200}
+    print a.a*=3, a;    ## 9 {d:3,a:9,b:200}
+    print a.a/=5, a;    ## 1.8 {d:3,a:1.8,b:200}
+    print a.a%=1, a;    ## 0.8 {d:3,a:0.8,b:200}
+    
+# functions & calling
+    # Test value returning
+    fn returned() return 65536;
+    fn implicit_return() {}
+    print returned();           ## 65536
+    print implicit_return();    ## nil
+    
+    # Test argument passing
+    fn args(a,b,c) print a,b,c;
+    args();                     ## nil nil nil
+    args(1,);                   ## 1 nil nil
+    args(1,2,);                 ## 1 2 nil
+    args(1,2,3);                ## 1 2 3
+    args(1,2,3,4);              ## 1 2 3
+    
+    # Test scoping
+    a=1024; b=2; # define before function to make global
+    fn locals(a) {
+        a=1;                    # modify & print local
+        b=b*1024;               # modify global
+        return a;
+    }
+    print locals(),a,b;         ## 1 1024 2048
+        
+    # Calling from a function
+    fn callee(x) return x+1;
+    fn caller() return callee(10);
+    print caller();             ## 11
+    
+    # Calling non-functions
+    fn still_called() print 'called';
+    print nil(still_called());
+    ## called
+    ## nil
+    
+    # Basic function has my = nil
+    fn nil_my(a,b) print my,a,b;
+    nil_my(1,2);                ## nil 1 2
+    
+    # Method
+    x = {};
+    fn f(a,b) print my,a,b;
+    x.f = f;
+    x.f(3,4);                   ## {f:f} 3 4
+# while
+    while i < 3 print i=i+1;
+    ## 1
+    ## 2
+    ## 3
+    i=0;
+    while true { if (i==3) break; print i=i+1; continue; print "bad"; }
+    ## 1
+    ## 2
+    ## 3
+# if
+    if false print 1;           # false is not true
+    if nil print 2;             # nil is not true
+    if 0 print 3;               ## 3
+    if '' print 4;              ## 4
+    if [] print 5;              ## 5
+    
+    if true print 6; else print 7; # one condition-true ## 6
+    if false print 8; else print 9; # one condition-false ## 9
+    if false print 1; else if true print 2; ## 2
