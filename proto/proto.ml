@@ -1,8 +1,18 @@
 #
 #   PRELUDE
 #
-let echo x = (pr x; pr "\n"; x)
-and tr x = (pr "TRACE: "; echo x)
+infixr 9 .
+infixl 6 * / rem
+infixl 5 + -
+infixl 4 : ^
+infixl 3 == <> < > <= >=
+infixr 2 &&
+infixr 2 ||
+infixr 1 :=
+infixl 1 <<
+infixr 0 $
+let print x = (pr x; pr "\n"; x)
+and tr x = (pr "TRACE: "; print x)
 and trace x = tr x
 and not x = if x then False else True
 and && x y = if x then (if y then True else False) else False
@@ -14,6 +24,7 @@ and <= x y = (|| (< x y) (== x y))
 and > x y = not (<= x y)
 and >= x y = not (< x y)
 and + x y = _add (x, y)
+and := x y = _set (x, y)
 and cons x y = (x, y)
 and hd xs = case xs | (x:_) -> x
 and tl xs = case xs | (_:x) -> x
@@ -24,14 +35,14 @@ and combine f g x = f (g x)
 and empty string = case string | "" -> True | (_^_) -> False
 
 and foldl f init xs =
-  let rec foldl' xs out =
+  let rec loop xs out =
     case xs
-    | (x:xs') -> foldl' xs' (f out x)
+    | (x:xs) -> loop xs (f out x)
     | [] -> out
-  in foldl' xs init
+  in loop xs init
 and rec foldr f init xs =
   case xs
-  | (x:xs') -> f x (foldr f init xs')
+  | (x:xs) -> f x (foldr f init xs)
   | [] -> init
 and reverse xs = foldl (flip cons) [] xs
 and map f xs = foldr (\x xs-> f x : xs) [] xs
@@ -64,4 +75,5 @@ and tls s = case s | (_ ^ x) -> x
 
 in
 
-()
+let x = REF 1
+in x := 21; print !x

@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define alloc(type, ...)\
+    memcpy(malloc(sizeof(type)), &(type){__VA_ARGS__}, sizeof(type))
 #define new(type, ...)\
     memcpy(malloc(sizeof(obj)), &(obj){type, __VA_ARGS__}, sizeof(obj))
 typedef struct obj {
@@ -13,17 +15,19 @@ typedef struct obj {
     };
 } obj;
 
+typedef struct infix { char *id; int lhs,rhs; struct infix *next; } infix;
 typedef enum { TEOF,TLP,TRP,TLB,TRB,TCOMMA,TSEMI,TFN,TINT,TSTR,TCNAME,TNAME,
-        TIF,TTHEN,TELSE,TLET,TREC,TIN,TCASE,TARR,TBAR,TEQ,TCOLON,TCAT,TAND,
-        } Token;
+        TIF,TTHEN,TELSE,TLET,TREC,TIN,TCASE,TARR,TBAR,TEQ,TAND,TINFIXL,TINFIXR,
+        TBANG, } Token;
 char    *toks[] = {"eof","(",")","[","]",",",";","\\","int","str","cname",
-        "name","if","then","else","let","rec","in","case","->","|","=",":","^",
-        "and", 0};
-char    source[65536], tokbuf[65536], *interns[65536], *src, *tokstr;
+        "name","if","then","else","let","rec","in","case","->","|","=",
+        "and", "infixl", "infixr", "!", 0};
+char    source[65536], tokbuf[65536], *interns[65536], *src, *tokstr, *path;
 int     line, ninterns, token, peeked, tokint;
 obj     *undef, *nil, *tru, *fal, *chars[256];
+infix   *infixes;
 
-void *syntax(char *msg) {printf("error %d: %s\n", line, msg); exit(1); }
+void *syntax(char *msg) {printf("error %s:%d: %s\n", path, line, msg); exit(1);}
 char *intern(char *s) {
     for (int i = 0; i < ninterns; i++)
         if (!strcmp(interns[i], s)) return interns[i];
@@ -67,6 +71,7 @@ obj *num(int n) { return new(INT, .n=n); }
 obj *str(char *s) { return new(STR, .s=s); }
 obj *sym(char *s) { return new(SYM, .s=s); }
 obj *data(char *tag, obj *arg) { return new(DATA, .a=tag, arg); }
+obj *cat(obj *hd, obj *tl) { return new(CAT, .a=hd, tl); }
 obj *cons(obj *hd, obj *tl) { return new(CONS, .a=hd, tl); }
 obj *app(obj *f, obj *x) { return new(APP, .a=f, x); }
 obj *rec(obj *id, obj *x, obj *in) { return new(REC, .a=id, x, in); }
@@ -77,6 +82,11 @@ bool is(int type, obj *o) { return o->type == type; }
 obj *hd(obj *o) { return is(CONS, o)? o->a: undef; }
 obj *tl(obj *o) { return is(CONS, o)? o->b: undef; }
 obj *expr(), *bexpr(bool required);
+infix *is_infix(void) {
+    for (infix *i = infixes; i; i = i->next)
+        if (i->id == tokstr) return i;
+    return 0;
+}
 obj *fexpr(int delim) {
     if (want(delim)) return expr();
     obj *par = bexpr(true);
@@ -88,6 +98,7 @@ obj *lexpr(obj *lhs, Token delim) {
     return need(delim, "seq not closed"), delim == TRB? cons(lhs, nil): lhs;
 }
 obj *bexpr(bool required) {
+    if (!required && peek(TNAME) && is_infix()) return 0;
     if (want(TCNAME)) return data(tokstr, undef);
     if (want(TNAME)) return sym(tokstr);
     if (want(TINT)) return num(tokint);
@@ -95,15 +106,23 @@ obj *bexpr(bool required) {
     if (want(TLP)) return want(TRP)? nil: lexpr(expr(), TRP);
     if (want(TLB)) return want(TRB)? nil: lexpr(expr(), TRB);
     if (want(TFN)) return fexpr(TARR);
+    if (want(TBANG)) return app(sym(intern("!")), bexpr(true));
     return required? syntax("need expression"): 0;
 }
-obj *cexpr() {
-    obj     *f = bexpr(true), *x;
-    while ((x = bexpr(false))) f = app(f, x);
-    return  want(TCOLON)? cons(f, cexpr()):
-            want(TCAT)? new(CAT, .a=f, cexpr()):
-            want(TSEMI)? app(fn(sym(intern("_")), cexpr(), nil), f):
-            f;
+obj *iexpr(int level) {
+    if (level == 10) {
+        obj     *f = bexpr(true), *x;
+        while ((x = bexpr(false))) f = app(f, x);
+        return f;
+    }
+    obj *lhs = iexpr(level + 1);
+    for (infix *i; peek(TNAME) && (i = is_infix()) && i->lhs == level; ) {
+        next();
+        if (!strcmp(i->id, ":")) return cons(lhs, iexpr(level));
+        if (!strcmp(i->id, "^")) return cat(lhs, iexpr(level));
+        lhs = app(app(sym(i->id), lhs), iexpr(i->rhs));
+    }
+    return lhs;
 }
 obj *rules() {
     if (!want(TBAR)) return undef;
@@ -128,7 +147,10 @@ obj *expr() {
         obj     *subject = expr();
         return app(rules(), subject);
     } else if (want(TLET)) return definition();
-    else return cexpr();
+    else {
+        obj *e = iexpr(0);
+        return want(TSEMI)? app(fn(sym(intern("_")), expr(), nil), e): e;
+    }
 }
 obj *pr(obj *o, bool paren) {
     if (paren && o->type >= CONS)
@@ -225,6 +247,8 @@ obj *_pr(obj *x) {
     fflush(stdout);
     return x;
 }
+obj *_set(obj *x) { return is(DATA, hd(x))? (hd(x)->b = tl(x)): undef; }
+obj *_deref(obj *x) { return is(DATA, x)? x->b: undef; }
 obj *def(char *id, obj *p(obj*), obj *env) {
     return cons(cons(sym(intern(id)), proc(intern(id), p)), env);
 }
@@ -232,7 +256,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < 256; i++) chars[i] = str(intern((char[]){ i, 0 }));
     undef = new(UNDEF), nil = new(NIL),
     tru = data(intern("True"), undef), fal = data(intern("False"), undef);
-    FILE *file = fopen(argv[1], "r");
+    FILE *file = fopen(path = intern(argv[1]), "r");
     if (!file) syntax("cannot open source");
     fread(src = source, line = 1, sizeof source, file);
     obj *env = def("_add", _add, nil);
@@ -241,6 +265,12 @@ int main(int argc, char **argv) {
     env = def("ord", _ord, env);
     env = def("chr", _chr, env);
     env = def("pr", _pr, env);
-    obj *o = suffix(expr(), 0, "end of file");
+    env = def("_set", _set, env);
+    env = def("!", _deref, env);
+    while (want(TINFIXL) || want(TINFIXR)) {
+        int rhs = token == TINFIXL, lhs = (need(TINT, "need ID"), tokint);
+        while (want(TNAME)) infixes = alloc(infix, tokstr, lhs, lhs+rhs, infixes);
+    }
+    obj *o = suffix(expr(), 0, "unexpected end of file");
     pr(eval(o, env), false), puts("");
 }

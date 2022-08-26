@@ -11,12 +11,13 @@ Features:
 expr:   'if' expr 'then' expr 'else' expr
         'case' expr {'|' bexpr '->' expr}
         'let' ['rec'] def {'and' def} 'in' expr
-        cexpr
-cexpr:  {bexpr} bexpr {op cexpr}
+        iexpr
+iexpr:  {bexpr} bexpr {op cexpr}
 bexpr:  cname/name/int/str
         '(' [expr {',' expr}] ')'
         '[' [expr {',' expr}] ']'
         '\\' {bexpr} '->' expr
+        '!' bexpr
 def:    bexpr {bexpr} '=' expr
 OP:     [:;^]
 NAME:   [a-z_'][a-zA-Z0-9_']+
