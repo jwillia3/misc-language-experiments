@@ -1,0 +1,66 @@
+# clean: statements
+    print 1;    ## 1
+    ;           # empty
+    {}          # empty
+    while nil{} # while
+    if 0 {}     # if no else
+    if 0 {} else {} # if and else
+    if 0 {} else if 0 {} else {} # chaining
+    fn f() {}  # fn w/ no arg
+    fn f1(x,y,){} # fn w/ multiple args
+    fn f2() {
+        z=1;        # local
+        return 10;  # return w/ arg
+    }
+    (fn (x) x+=1;)(456); # inline function
+# clean: expressions
+    1;          # expression as statement
+    a=1;        # assignment expression as statement
+    '';         # empty string
+    'abc def\t\n\r\'
+        ';      # mult-line strings w/ escapes
+    a_b0;       # variable
+    123.4;      # number
+    [];         # empty array
+    [1,2,3];    # array
+    -1; !1;     # prefix operators
+    f()()[1];   # multiple calls and indexes
+    f(1,);      # call w/ trailing comma
+    1+2*3/4%5;  # arithmetic operators
+    1<2<=3==4!=5>=6>7; # relatation operators
+    a=1;        # variable assignment
+    a[0]=1;     # array assignemnt
+    a.name=1;   # hash assignment
+    print 'ok'; ## ok
+# error: function w/ no name
+    fn(){}     ## error 1: need name
+# error: function w/ bad param
+    fn f(1){}  ## error 1: need name
+# error: return outside of function
+    return 0;   ## error 1: not in function
+# error: return w/ no expression
+    fn f() return ## error 2: need expression
+# error: continue outside of loop
+    continue;   ## error 1: outside of loop
+# error: break outside of loop
+    break;      ## error 1: outside of loop
+# error: block not closed
+    {           ## error 2: need expression
+# error: string not closed
+    '           ## error 1: unclosed string
+# error: array not closed w/ no elements
+    [           ## error 2: need expression
+# error: array not closed w/ elements
+    [1          ## error 2: array not closed
+# error: call not closed w/ no args
+    0(          ## error 2: need expression
+# error: call not closed w/ args
+    0(1         ## error 2: call not closed
+# error: hash not closed w/ no elements
+    x={         ## error 2: need name
+# error: hash not closed w/ elements
+    x={a:1      ## error 2: hash not closed
+# error: hash missing colon
+    x={a        ## error 2: need colon
+# error: hash missing value
+    x={a:       ## error 2: need expression
