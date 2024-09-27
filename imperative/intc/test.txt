@@ -1,0 +1,35 @@
+prnn(x,base)
+	if (x<0) {
+		prnc(`-);
+		return -prnn(-x,base);
+	} else {
+		x/base && prnn(x/base,base);
+		prnc("0123456789abcdef"[x%base]);
+		return x;
+	}
+prni(x)	return prnn(x,10);
+prnx(x)	return prnn(x,16);
+prns(s byte*) {
+	var	i;
+	i=0;
+	while (s[i])
+		prnc(s[i++]);
+}
+format	(s byte*,_) {
+	var	i,a,c,varg any*;
+	a=i=0;
+	varg=&_;
+	while (s[i])
+		if ((c=s[i++])==`%) {
+			c=s[i++];
+			if (c==`d)	prni(varg[a++]);
+			else if (c==`x)	prnx(varg[a++]);
+			else if (c==`c)	prnc(varg[a++]);
+			else if (c==`s)	prns(varg[a++]);
+			else if (c==`%)	prnc(`%);
+		} else
+			prnc(c);
+}
+main() {
+	format("100%% %s %x%c", "OK", 0xcafe, `\n);
+}

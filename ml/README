@@ -1,0 +1,18 @@
+ETUDE 1: Attempt to transform case into branches
+- Operational
+- Advanced prelude
+- Case-based analysis
+- Parsing
+  - Pattern-based parameters
+- AST-based evaluation
+  - Debruijn indexing
+- Built-in based operators (with closures)
+- Signal error with semantic()
+
+ETUDE 2: Bytecode w/o AST; tuple/list distinction
+- NO CASE
+- NO PATTERNS
+- NO TUPLES
+- NO AST GENERATION
+- List decomposition
+- Bytecode

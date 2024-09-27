@@ -1,0 +1,10 @@
+
+# Should `this` be special?
+# `f.name` should be the function's name not `Fn`
+
+# ({a:1, b:2, c:3});
+{
+    var x = 1;
+    print(x);
+    print("OK.");
+}

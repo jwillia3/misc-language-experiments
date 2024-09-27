@@ -1,0 +1,48 @@
+datatype Good(x)
+datatype Bad(x)
+fun of(f,g) fun(x) f(g(x));
+fun flip(f) fun(x, y) f(y, x);
+fun copy(x) foldl(push, [], x);
+fun reverse(x) foldr(flip(push), [], x);
+fun empty?(xs) length(xs) == 0;
+fun head(xs) xs.0;
+fun tail(xs) slice(xs, 1, -1);
+fun foldl(f, x, xs) upto(length(xs), x, fun(i, out) f(out, xs[i]));
+fun foldl1(f, xs) foldl(f, xs.0, tail(xs));
+fun foldr(f, x, xs) downto(length(xs), x, fun(i, out) f(xs[i], out));
+fun foldr1(f, xs) downto(length(xs) - 1, xs.-1, fun(i, out) f(xs[i], out));
+fun map(f, xs) foldl(fun(out, x) push(out, f(x)), [], xs);
+fun each(f, xs) foldl(fun(_, x) f(x), NIL, xs);
+fun concat!(xs, ys) each(fun(i) push(xs, i), ys);
+fun concat(xs, ys)  concat!(copy(xs), ys);
+fun flatten(xs) foldl(concat!, [], xs);
+fun join(sep, xs)   if empty?(xs)
+                    then ""
+                    else if length(xs) == 1
+                    then xs.0 ^ ""
+                    else foldl1(fun (x, y) x ^ sep ^ y, xs);
+fun prefixes?(prefix, text)
+    length(prefix) <= length(text) and slice(text, 0, length(prefix)) == prefix;
+
+datatype NoToken
+datatype IntToken(int)
+datatype StringToken(string)
+datatype NameToken(name)
+
+fun plit(s)
+    fun (text)
+        if prefixes?(s, text)
+        then Good([s, slice(text, length(s), -1)])
+        else Bad(["need " ^ s, text]);
+fun pand(a, b)
+    fun (text) {
+        var x = a(text);
+        if x is Good
+        then { var y = b(x.x.1);
+                if y is Good
+                then Good([x.x.0 ^ y.x.0, y.x.1])
+                else y }
+        else x;
+    }
+
+print pand(plit("abc"), plit("def"))("abcdef")
